@@ -1,1 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benjamin's Notes — Calculus II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})">
+</script>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --ink:      #1a1a2e;
+  --paper:    #faf7f2;
+  --accent:   #c0392b;
+  --gold:     #b8860b;
+  --rule:     #d4c9b0;
+  --dim:      #6b6556;
+  --math-bg:  #f0ebe0;
+  --step-bg:  #eef4fb;
+  --ans-bg:   #fdf3f3;
+  --int-bg:   #f3fdf5;
+  --code-col: #2c3e50;
+  --conv-bg:  #f0e8ff;
+  --conv-accent: #6c3fb5;
+  --cond-bg:  #fff8f0;
+  --cond-accent:#d35400;
+  --div-bg:   #fdf3f3;
+  --div-accent:#c0392b;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  background: var(--ink);
+  color: var(--paper);
+  overflow-x: hidden;
+}
+
+/* ── Page System ──────────────────────────────────────────────────── */
+.page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+  overflow-y: auto;
+}
+.page.active { opacity: 1; pointer-events: all; }
+
+/* ── Sol Pages ────────────────────────────────────────────────────── */
+.sol-page {
+  background: var(--paper);
+  color: var(--ink);
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.sol-page.active { opacity: 1; pointer-events: all; }
+.sol-page .site-header { background: var(--ink); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+.solutions-wrap { overflow-y: auto; flex: 1; padding-bottom: 80px; }
+
+/* ── Shared Nav Header ────────────────────────────────────────────── */
+.site-header {
+  padding: 28px 48px 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.site-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--paper);
+  opacity: 0.9;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1.5px;
+  flex: 1;
+}
+.breadcrumb span { cursor: pointer; transition: color 0.2s; }
+.breadcrumb span:hover { color: rgba(255,255,255,0.75); }
+.breadcrumb .sep { opacity: 0.3; cursor: default; }
+.breadcrumb .current { color: var(--gold); cursor: default; }
+.back-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.55);
+  padding: 6px 16px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.back-btn:hover { border-color: rgba(255,255,255,0.4); color: var(--paper); background: rgba(255,255,255,0.05); }
+
+/* ── Nav Stage ────────────────────────────────────────────────────── */
+.nav-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  position: relative;
+  overflow-y: auto;
+}
+.nav-stage::before {
+  content: attr(data-symbol);
+  position: absolute;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(120px, 25vw, 260px);
+  color: rgba(255,255,255,0.028);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -52%);
+  pointer-events: none;
+  letter-spacing: -10px;
+  user-select: none;
+}
+.nav-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  opacity: 0.85;
+}
+.nav-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  color: var(--paper);
+}
+.nav-sub {
+  color: rgba(255,255,255,0.35);
+  font-size: 0.9rem;
+  margin-bottom: 48px;
+  text-align: center;
+  max-width: 520px;
+  line-height: 1.7;
+}
+.nav-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── Nav Buttons ──────────────────────────────────────────────────── */
+.nav-btn {
+  position: relative;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--paper);
+  padding: 36px 52px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-width: 220px;
+  text-align: left;
+  overflow: hidden;
+}
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.nav-btn:hover { border-color: rgba(192,57,43,0.6); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(192,57,43,0.2); }
+.nav-btn:hover::before { opacity: 1; }
+.nav-btn-label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 2.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; display: block; }
+.nav-btn-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; display: block; line-height: 1.1; }
+.nav-btn-desc { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 8px; font-style: italic; line-height: 1.4; max-width: 260px; }
+.nav-btn-arrow { position: absolute; bottom: 20px; right: 22px; font-size: 1.1rem; opacity: 0.2; transition: all 0.3s; }
+.nav-btn:hover .nav-btn-arrow { opacity: 0.8; transform: translateX(4px); color: var(--accent); }
+.nav-btn.coming-soon { opacity: 0.4; cursor: not-allowed; }
+.nav-btn.coming-soon:hover { transform: none; border-color: rgba(255,255,255,0.15); box-shadow: none; }
+.soon-badge { display: inline-block; background: rgba(255,255,255,0.1); font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 1.5px; padding: 3px 8px; border-radius: 2px; margin-top: 10px; color: rgba(255,255,255,0.5); }
+.nav-btn.topic-btn { min-width: 300px; padding: 30px 42px; }
+
+/* ── Topic Grid ───────────────────────────────────────────────────── */
+.topic-grid-wrap { width: 100%; max-width: 900px; position: relative; z-index: 1; }
+.topic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.topic-btn-card {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--paper);
+  padding: 22px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: left;
+  position: relative;
+}
+.topic-btn-card:not(:disabled):hover { border-color: rgba(192,57,43,0.55); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.35); background: rgba(255,255,255,0.03); }
+.topic-btn-card:disabled { opacity: 0.3; cursor: not-allowed; }
+.topic-btn-card .t-icon { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--accent); display: block; line-height: 1; margin-bottom: 6px; }
+.topic-btn-card.active-t .t-icon { color: var(--gold); }
+.topic-btn-card.active-t { border-color: rgba(184,134,11,0.5); }
+.topic-btn-card .t-name { font-family: 'Lato', sans-serif; font-size: 0.72rem; opacity: 0.65; line-height: 1.3; }
+.topic-btn-card.active-t .t-name { opacity: 0.9; color: var(--gold); }
+
+/* ── Sol Header ───────────────────────────────────────────────────── */
+.sol-header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 52px 72px 44px;
+  border-bottom: 6px solid var(--accent);
+  position: relative;
+  overflow: hidden;
+}
+.sol-header::before {
+  content: attr(data-symbol);
+  position: absolute;
+  right: 60px;
+  top: 20px;
+  font-family: 'Playfair Display', serif;
+  font-size: 90px;
+  opacity: 0.06;
+  letter-spacing: 12px;
+  pointer-events: none;
+}
+.sol-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 10px; }
+.sol-header p { font-size: 0.95rem; opacity: 0.55; max-width: 560px; line-height: 1.7; }
+.mode-badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 2px; color: var(--gold); border: 1px solid rgba(184,134,11,0.4); padding: 4px 10px; border-radius: 3px; margin-bottom: 14px; }
+
+/* ── TOC ──────────────────────────────────────────────────────────── */
+.toc-wrap { max-width: 920px; margin: 44px auto 0; padding: 0 36px; }
+.toc-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.toc-item { background: white; border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; text-align: center; color: var(--ink); transition: all 0.18s; font-size: 0.78rem; cursor: pointer; }
+.toc-item:hover { background: var(--ink); color: var(--paper); }
+.toc-num { display: block; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--accent); font-weight: 700; line-height: 1; margin-bottom: 3px; }
+.toc-item:hover .toc-num { color: #ff8080; }
+
+/* ── Sol Main ─────────────────────────────────────────────────────── */
+.sol-main { max-width: 920px; margin: 44px auto; padding: 0 36px; }
+
+/* ── SOP Cards ────────────────────────────────────────────────────── */
+.sop-card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  margin-bottom: 40px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+.sop-card-head {
+  background: var(--ink);
+  color: white;
+  padding: 20px 30px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sop-card-head-icon { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; opacity: 0.85; line-height: 1; min-width: 52px; }
+.sop-card-head-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; line-height: 1.2; }
+.sop-card-head-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 2px; opacity: 0.55; margin-top: 4px; text-transform: uppercase; }
+.sop-card-body { padding: 26px 30px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Section Boxes ────────────────────────────────────────────────── */
+.sec { border-radius: 4px; padding: 16px 20px; }
+.sec-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 9px; display: flex; align-items: center; gap: 8px; }
+.sec-label::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.18; }
+.sec p { font-size: 0.91rem; line-height: 1.75; margin-bottom: 7px; }
+.sec p:last-child { margin-bottom: 0; }
+
+/* Section types */
+.sec-overview { background: #f5f0e8; border-left: 4px solid var(--gold); }
+.sec-overview .sec-label { color: var(--gold); }
+.sec-step { background: var(--step-bg); }
+.sec-step .sec-label { color: #2980b9; }
+.sec-formula { background: var(--int-bg); border-left: 4px solid #27ae60; }
+.sec-formula .sec-label { color: #27ae60; }
+.sec-result { background: var(--ans-bg); border-left: 4px solid var(--accent); }
+.sec-result .sec-label { color: var(--accent); }
+.sec-conv { background: var(--conv-bg); border-left: 4px solid var(--conv-accent); }
+.sec-conv .sec-label { color: var(--conv-accent); }
+.sec-cond { background: var(--cond-bg); border-left: 4px solid var(--cond-accent); }
+.sec-cond .sec-label { color: var(--cond-accent); }
+.sec-div { background: var(--div-bg); border-left: 4px solid var(--div-accent); }
+.sec-div .sec-label { color: var(--div-accent); }
+.sec-neutral { background: #fafafa; border: 1px solid #ddd; }
+.sec-neutral .sec-label { color: #444; }
+.sec-warn { background: #fffbee; border-left: 4px solid #e6a817; }
+.sec-warn .sec-label { color: #b8860b; }
+.sec-demo { background: #f0f7ff; border-left: 4px solid #2980b9; }
+.sec-demo .sec-label { color: #2980b9; }
+
+/* ── Math display ─────────────────────────────────────────────────── */
+.math-display { background: rgba(0,0,0,0.04); border-radius: 4px; padding: 14px 18px; margin: 10px 0; overflow-x: auto; text-align: center; }
+.math-block { background: rgba(0,0,0,0.042); border-radius: 4px; padding: 12px 15px; margin: 9px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--code-col); line-height: 2; overflow-x: auto; white-space: pre; }
+
+/* ── Answer / convergence box ─────────────────────────────────────── */
+.ans-val { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--accent); margin: 6px 0 3px; }
+.ans-sub { font-size: 0.78rem; color: #999; }
+
+.conv-box { background: var(--ink); color: var(--paper); border-radius: 4px; padding: 14px 18px; margin-top: 10px; text-align: center; }
+.conv-box-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; }
+
+/* ── Steps list ───────────────────────────────────────────────────── */
+.steps-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 6px 0; }
+.steps-list li { display: flex; gap: 12px; font-size: 0.9rem; line-height: 1.65; }
+.steps-list li .step-num { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--accent); line-height: 1.4; min-width: 22px; }
+.steps-list li .step-body { flex: 1; }
+.steps-list li .step-body strong { color: var(--ink); font-weight: 700; }
+
+/* ── Decision table ───────────────────────────────────────────────── */
+.dec-table-wrap { overflow-x: auto; margin: 8px 0; }
+.dec-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.dec-table th { background: var(--ink); color: var(--gold); padding: 10px 16px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.63rem; letter-spacing: 2px; text-transform: uppercase; }
+.dec-table td { padding: 10px 16px; border-bottom: 1px solid var(--rule); vertical-align: top; line-height: 1.5; }
+.dec-table tr:nth-child(even) td { background: #f5f0e8; }
+.dec-table td:first-child { font-style: italic; color: #444; font-weight: 400; }
+.dec-table td.verdict-conv { color: #1a7a4a; font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.dec-table td.verdict-div { color: var(--accent); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.dec-table td.verdict-cond { color: var(--cond-accent); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.dec-table td.verdict-inc { color: #666; font-style: italic; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+/* ── Problem Example Boxes ────────────────────────────────────────── */
+.prob-card { background: white; border: 1px solid var(--rule); border-radius: 5px; margin: 10px 0; overflow: hidden; }
+.prob-card-head { background: #f5f0e8; padding: 12px 20px; display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--rule); }
+.prob-card-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.prob-card-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--ink); }
+.prob-card-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Divider ──────────────────────────────────────────────────────── */
+.sop-divider { display: flex; align-items: center; gap: 14px; padding: 4px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 2px; color: var(--gold); opacity: 0.7; text-transform: uppercase; }
+.sop-divider::before, .sop-divider::after { content: ''; flex: 1; height: 1px; background: var(--gold); opacity: 0.25; }
+
+/* ── Pipeline boxes ───────────────────────────────────────────────── */
+.pipeline { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+.pipe-box { background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 1px; }
+.pipe-arrow { color: var(--gold); font-size: 1.1rem; opacity: 0.6; }
+
+/* ── Footer ───────────────────────────────────────────────────────── */
+.sol-footer { text-align: center; padding: 36px; color: #bbb; font-size: 0.78rem; border-top: 1px solid var(--rule); max-width: 920px; margin: 0 auto; line-height: 1.9; }
+
+/* ── KaTeX override ───────────────────────────────────────────────── */
+.katex { font-size: 1em; }
+.math-display .katex-display { margin: 0; }
+
+/* ── Animations ───────────────────────────────────────────────────── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+.page.active .nav-eyebrow { animation: fadeUp 0.5s 0.05s both; }
+.page.active .nav-title   { animation: fadeUp 0.5s 0.12s both; }
+.page.active .nav-sub     { animation: fadeUp 0.5s 0.18s both; }
+.page.active .nav-grid    { animation: fadeUp 0.5s 0.25s both; }
+.page.active .topic-grid-wrap { animation: fadeUp 0.5s 0.25s both; }
+
+@media (max-width: 700px) {
+  .site-header { padding: 18px 24px; }
+  .sol-header { padding: 36px 28px 32px; }
+  .sol-main { padding: 0 18px; }
+  .toc-wrap { padding: 0 18px; }
+  .nav-btn { min-width: 160px; padding: 28px 32px; }
+  .topic-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══════════════════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <header class="site-header">
+    <div class="site-logo">Benjamin's Notes</div>
+    <div class="breadcrumb"><span class="current">HOME</span></div>
+  </header>
+  <div class="nav-stage" data-symbol="∑">
+    <div class="nav-eyebrow">select a subject</div>
+    <h1 class="nav-title">What are we<br>studying today?</h1>
+    <p class="nav-sub">Course notes, Standard Operating Procedures, and derivations — explained the way a mathematician actually thinks.</p>
+    <div class="nav-grid">
+      <button class="nav-btn coming-soon" disabled>
+        <span class="nav-btn-label">subject</span>
+        <span class="nav-btn-title">Physics</span>
+        <span class="soon-badge">COMING SOON</span>
+        <span class="nav-btn-arrow">→</span>
+      </button>
+      <button class="nav-btn" onclick="go('page-calc')">
+        <span class="nav-btn-label">subject</span>
+        <span class="nav-btn-title">Calculus</span>
+        <span class="nav-btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CALCULUS ════════════════════════════════════════════════════════ -->
+<div class="page" id="page-calc">
+  <header class="site-header">
+    <button class="back-btn" onclick="go('page-home')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span class="current">CALCULUS</span>
+    </div>
+  </header>
+  <div class="nav-stage" data-symbol="∫">
+    <div class="nav-eyebrow">select a course</div>
+    <h1 class="nav-title">Calculus</h1>
+    <p class="nav-sub">From series convergence to power series — rigorous SOPs for every major topic.</p>
+    <div class="nav-grid">
+      <button class="nav-btn coming-soon" disabled>
+        <span class="nav-btn-label">course</span>
+        <span class="nav-btn-title">Calculus I</span>
+        <span class="soon-badge">COMING SOON</span>
+        <span class="nav-btn-arrow">→</span>
+      </button>
+      <button class="nav-btn" onclick="go('page-calc2')">
+        <span class="nav-btn-label">course</span>
+        <span class="nav-btn-title">Calculus II</span>
+        <span class="nav-btn-arrow">→</span>
+      </button>
+      <button class="nav-btn coming-soon" disabled>
+        <span class="nav-btn-label">course</span>
+        <span class="nav-btn-title">Calculus III</span>
+        <span class="soon-badge">COMING SOON</span>
+        <span class="nav-btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CALCULUS II ═════════════════════════════════════════════════════ -->
+<div class="page" id="page-calc2">
+  <header class="site-header">
+    <button class="back-btn" onclick="go('page-calc')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span class="current">CALCULUS II</span>
+    </div>
+  </header>
+  <div class="nav-stage" data-symbol="Σ">
+    <div class="nav-eyebrow">select a topic</div>
+    <h1 class="nav-title">Calculus II</h1>
+    <p class="nav-sub">Select a topic. Each SOP eliminates guesswork — just follow the protocol.</p>
+    <div class="topic-grid-wrap">
+      <div class="topic-grid">
+        <button class="topic-btn-card active-t" onclick="go('page-geometric')">
+          <span class="t-icon">Σ</span>
+          <span class="t-name">Geometric Series</span>
+        </button>
+        <button class="topic-btn-card active-t" onclick="go('page-alternating')">
+          <span class="t-icon">±</span>
+          <span class="t-name">Alternating Series</span>
+        </button>
+        <button class="topic-btn-card active-t" onclick="go('page-dct')">
+          <span class="t-icon">≤</span>
+          <span class="t-name">Direct Comparison</span>
+        </button>
+        <button class="topic-btn-card active-t" onclick="go('page-lct')">
+          <span class="t-icon">L</span>
+          <span class="t-name">Limit Comparison</span>
+        </button>
+        <button class="topic-btn-card active-t" onclick="go('page-root')">
+          <span class="t-icon">ⁿ√</span>
+          <span class="t-name">Root Test</span>
+        </button>
+        <button class="topic-btn-card active-t" onclick="go('page-telescoping')">
+          <span class="t-icon">↔</span>
+          <span class="t-name">Telescoping Series</span>
+        </button>
+        <button class="topic-btn-card" disabled>
+          <span class="t-icon">ρ</span>
+          <span class="t-name">Ratio Test <span style="font-size:0.6rem;opacity:0.5;display:block;margin-top:2px;">coming soon</span></span>
+        </button>
+        <button class="topic-btn-card" disabled>
+          <span class="t-icon">∫</span>
+          <span class="t-name">Integral Test <span style="font-size:0.6rem;opacity:0.5;display:block;margin-top:2px;">coming soon</span></span>
+        </button>
+        <button class="topic-btn-card" disabled>
+          <span class="t-icon">P</span>
+          <span class="t-name">Power Series <span style="font-size:0.6rem;opacity:0.5;display:block;margin-top:2px;">coming soon</span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE: GEOMETRIC SERIES SOP                                         -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="sol-page" id="page-geometric">
+  <header class="site-header" style="position:sticky;top:0;z-index:100;">
+    <button class="back-btn" onclick="go('page-calc2')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span onclick="go('page-calc2')">CALC II</span><span class="sep">/</span>
+      <span class="current">GEOMETRIC SERIES</span>
+    </div>
+  </header>
+  <div class="solutions-wrap">
+
+    <div class="sol-header" data-symbol="Σ">
+      <div class="mode-badge">CALCULUS II — SERIES CONVERGENCE</div>
+      <h1>Geometric Series — Rigorous SOP</h1>
+      <p>The Reindexing Transformation: a mechanical protocol that maps any starting index $k$ to the canonical $m=0$ form. Follow this once and you'll never need to memorize special cases.</p>
+    </div>
+
+    <!-- The Fundamental Identity -->
+    <div class="sol-main">
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">I.</div>
+          <div>
+            <div class="sop-card-head-title">The Fundamental Identity</div>
+            <div class="sop-card-head-sub">Everything reduces to this</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-overview">
+            <div class="sec-label">Core Identity</div>
+            <p>Every geometric series, regardless of starting index, reduces to the same closed form via the Reindexing Transformation:</p>
+            <div class="math-display">$$\sum_{n=k}^{\infty}ar^{n}=\sum_{m=0}^{\infty}ar^{m+k}=ar^{k}\sum_{m=0}^{\infty}r^m=\frac{ar^k}{1-r}$$</div>
+            <p>Whether the series has nested exponents, negative ratios, or non-standard starting points — this identity is the final destination. The protocol below is the guaranteed path to get there.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RGSP: The Six Steps -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">Φ</div>
+          <div>
+            <div class="sop-card-head-title">The Rigorous Geometric Series Protocol (RGSP)</div>
+            <div class="sop-card-head-sub">Six deterministic steps — no intuition required</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="sec sec-step">
+            <div class="sec-label">Step 1 — Domain &amp; Convergence Guardrail</div>
+            <p>Before any algebra, verify the series is geometric and converges.</p>
+            <ul class="steps-list">
+              <li><span class="step-num">①</span><span class="step-body"><strong>Geometricity Test:</strong> Verify $\frac{u_{n+1}}{u_n} = r$, where $r$ is constant and independent of $n$.</span></li>
+              <li><span class="step-num">②</span><span class="step-body"><strong>Convergence Criterion:</strong> If $|r| \geq 1$, the series <strong>diverges</strong> by the $n$-th Term Test. Stop. If $|r| < 1$, proceed.</span></li>
+            </ul>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Step 2 — Decomposition (Linearity)</div>
+            <p>If the summand is a sum or difference of multiple terms, split it:</p>
+            <div class="math-display">$$\sum (u_n \pm v_n) = \sum u_n \pm \sum v_n$$</div>
+            <p>Evaluate each resulting series independently. If one part diverges, the entire sum diverges.</p>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Step 3 — Canonical Normalization</div>
+            <p>Rewrite the series so $n$ appears only as a clean, positive power. Use the exponent laws to isolate the base $r$:</p>
+            <div class="math-display">$$r^{-n} \to \left(\tfrac{1}{r}\right)^n \qquad r^{n+p} \to r^p \cdot r^n \qquad \frac{x^n}{y^n} \to \left(\frac{x}{y}\right)^n$$</div>
+            <p><strong>Target form:</strong> $\displaystyle\sum_{n=k}^{\infty} a \cdot r^n$</p>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Step 4 — Parametric Extraction</div>
+            <p>Extract the three required parameters:</p>
+            <div class="math-display">$$a = \text{constant coefficient} \qquad r = \text{common ratio (base)} \qquad k = \text{starting index}$$</div>
+          </div>
+
+          <div class="sec sec-formula">
+            <div class="sec-label">Step 5 — The Reindexing Transformation (The Footwork)</div>
+            <p>Apply the substitution $m = n - k$ to shift the starting index to zero:</p>
+            <div class="math-display">$$\sum_{n=k}^{\infty} ar^n = \sum_{m=0}^{\infty} ar^{m+k} = ar^k \sum_{m=0}^{\infty} r^m$$</div>
+          </div>
+
+          <div class="sec sec-result">
+            <div class="sec-label">Step 6 — Evaluation via Geometric Identity</div>
+            <p>Replace the infinite sum with its closed-form value:</p>
+            <div class="math-display">$$\boxed{\text{Sum} = ar^k \cdot \frac{1}{1-r} = \frac{ar^k}{1-r}}$$</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Worked Examples -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">∑</div>
+          <div>
+            <div class="sop-card-head-title">Worked Examples</div>
+            <div class="sop-card-head-sub">The protocol applied step-by-step</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">1</div><div class="prob-card-title">$\displaystyle\sum_{n=3}^{\infty} \frac{5 \cdot 2^{n-1}}{3^{n+1}}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step">
+                <div class="sec-label">Step 1 — Convergence</div>
+                <p>Ratio $r = 2/3$. Since $|2/3| < 1$, the series converges. Proceed.</p>
+              </div>
+              <div class="sec sec-step">
+                <div class="sec-label">Step 3 — Normalization</div>
+                <div class="math-display">$$\frac{5 \cdot 2^n \cdot 2^{-1}}{3^n \cdot 3^1} = \frac{5 \cdot \frac{1}{2}}{3} \cdot \left(\frac{2}{3}\right)^n = \frac{5}{6} \left(\frac{2}{3}\right)^n$$</div>
+              </div>
+              <div class="sec sec-step">
+                <div class="sec-label">Step 4 — Extraction</div>
+                <div class="math-display">$$a = \tfrac{5}{6}, \qquad r = \tfrac{2}{3}, \qquad k = 3$$</div>
+              </div>
+              <div class="sec sec-formula">
+                <div class="sec-label">Steps 5 &amp; 6 — Reindex &amp; Evaluate</div>
+                <div class="math-display">$$\frac{5}{6} \left(\frac{2}{3}\right)^3 \cdot \frac{1}{1 - 2/3} = \frac{5}{6} \cdot \frac{8}{27} \cdot 3 = \frac{20}{27}$$</div>
+              </div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><div class="math-display" style="background:transparent;">$$\boxed{\frac{20}{27}}$$</div></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">2</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty} 2x(x^2)^n$ — Variable Ratio</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step">
+                <div class="sec-label">Step 1 — Convergence</div>
+                <p>Ratio $r = x^2$. Converges only if $|x^2| < 1$, i.e. $|x| < 1$. Outside this interval: diverges.</p>
+              </div>
+              <div class="sec sec-step">
+                <div class="sec-label">Step 4 — Extraction</div>
+                <div class="math-display">$$a = 2x, \qquad r = x^2, \qquad k = 1$$</div>
+              </div>
+              <div class="sec sec-formula">
+                <div class="sec-label">Steps 5 &amp; 6 — Reindex &amp; Evaluate</div>
+                <div class="math-display">$$\sum_{m=0}^{\infty} 2x(x^2)^{m+1} = 2x(x^2)^1 \sum_{m=0}^{\infty} (x^2)^m = 2x^3 \cdot \frac{1}{1-x^2}$$</div>
+              </div>
+              <div class="conv-box"><div class="conv-box-label">Result (for $|x| < 1$)</div><div class="math-display" style="background:transparent;">$$\boxed{\frac{2x^3}{1-x^2}}$$</div></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">3</div><div class="prob-card-title">$\displaystyle\sum_{n=2}^{\infty} \frac{3^{n-1} - 2}{4^{n+1}}$ — Linearity Required</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step">
+                <div class="sec-label">Step 2 — Decomposition</div>
+                <div class="math-display">$$\sum_{n=2}^{\infty} \frac{3^{n-1}}{4^{n+1}} - \sum_{n=2}^{\infty} \frac{2}{4^{n+1}}$$</div>
+              </div>
+              <div class="sec sec-step">
+                <div class="sec-label">Series 1 Normalized</div>
+                <div class="math-display">$$\frac{3^{n-1}}{4^{n+1}} = \frac{1}{12}\left(\frac{3}{4}\right)^n \implies a=\tfrac{1}{12},\; r=\tfrac{3}{4},\; k=2$$</div>
+                <div class="math-display">$$\text{Sum}_1 = \frac{1}{12}\cdot\frac{9}{16}\cdot\frac{1}{1/4} = \frac{3}{16}$$</div>
+              </div>
+              <div class="sec sec-step">
+                <div class="sec-label">Series 2 Normalized</div>
+                <div class="math-display">$$\frac{2}{4^{n+1}} = \frac{1}{2}\left(\frac{1}{4}\right)^n \implies a=\tfrac{1}{2},\; r=\tfrac{1}{4},\; k=2$$</div>
+                <div class="math-display">$$\text{Sum}_2 = \frac{1}{2}\cdot\frac{1}{16}\cdot\frac{4}{3} = \frac{1}{24}$$</div>
+              </div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><div class="math-display" style="background:transparent;">$$\frac{3}{16} - \frac{1}{24} = \frac{9}{48} - \frac{2}{48} = \boxed{\frac{7}{48}}$$</div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <div class="sol-footer">Geometric Series SOP — Rigorous Geometric Series Protocol (RGSP)<br>Every geometric sum reduces to: $\dfrac{ar^k}{1-r}$ for $|r| < 1$.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE: ALTERNATING SERIES SOP                                       -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="sol-page" id="page-alternating">
+  <header class="site-header" style="position:sticky;top:0;z-index:100;">
+    <button class="back-btn" onclick="go('page-calc2')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span onclick="go('page-calc2')">CALC II</span><span class="sep">/</span>
+      <span class="current">ALTERNATING SERIES</span>
+    </div>
+  </header>
+  <div class="solutions-wrap">
+
+    <div class="sol-header" data-symbol="±">
+      <div class="mode-badge">CALCULUS II — SERIES CONVERGENCE</div>
+      <h1>Alternating Series — Rigorous ASP</h1>
+      <p>Leibniz's Criteria formalized into a tiered diagnostic. Classifies every alternating series as Absolutely Convergent, Conditionally Convergent, or Divergent.</p>
+    </div>
+
+    <div class="sol-main">
+
+      <!-- Leibniz's Criteria -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">I.</div>
+          <div>
+            <div class="sop-card-head-title">Leibniz's Criteria (The Alternating Series Test)</div>
+            <div class="sop-card-head-sub">The two conditions — both must hold</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-overview">
+            <div class="sec-label">Form</div>
+            <p>A series of the form $\sum_{n=k}^{\infty} (-1)^n b_n$ or $(-1)^{n+1} b_n$ converges if and only if <strong>both</strong> conditions hold:</p>
+            <div class="math-display">$$\textbf{1. Monotonicity:}\quad b_{n+1} \leq b_n \;\;\forall\, n \geq K \qquad \textbf{2. Vanishing Limit:}\quad \lim_{n\to\infty} b_n = 0$$</div>
+            <p>If either fails — especially if the limit is nonzero — the series diverges by the $n$-th Term Test.</p>
+          </div>
+          <div class="sec sec-warn">
+            <div class="sec-label">Key Insight — Absolute vs. Conditional</div>
+            <p><strong>Absolutely Convergent:</strong> $\sum |u_n|$ converges. The series is so strong it doesn't need the alternating signs. If the Ratio Test yields $L < 1$: done.<br><br>
+            <strong>Conditionally Convergent:</strong> $\sum |u_n|$ diverges, but $\sum u_n$ converges via AST. The alternating signs alone rescued it.<br><br>
+            If the Ratio Test gives $L < 1$: Absolute Convergence — ignore the AST entirely.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Protocol -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">Φ</div>
+          <div>
+            <div class="sop-card-head-title">Rigorous Alternating Series Protocol (RASP v2.0)</div>
+            <div class="sop-card-head-sub">Five phases — handles all standard cases and edge cases</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 1 — Anatomy &amp; Oscillator Check</div>
+            <ul class="steps-list">
+              <li><span class="step-num">①</span><span class="step-body"><strong>The Alternator:</strong> Strip $(-1)^n$, $(-1)^{n+1}$, $\cos(n\pi)$ from the summand.</span></li>
+              <li><span class="step-num">②</span><span class="step-body"><strong>The Positive Sequence ($b_n$):</strong> What remains. Ensure $b_n > 0$ for all $n \geq k$.</span></li>
+              <li><span class="step-num">③</span><span class="step-body"><strong>Irregular Oscillator Check:</strong> If the oscillator is $\sin(n)$ or $\cos(n)$ (signs don't flip every term) — attempt Phase 2, then escalate to Dirichlet's Test if Phase 2 fails.</span></li>
+            </ul>
+          </div>
+
+          <div class="sec sec-conv">
+            <div class="sec-label">Phase 2 — Absolute Bypass (Priority 1)</div>
+            <p>Evaluate $\sum |u_n| = \sum b_n$ using positive-term tests. Use the Ratio Test if you see $n!$ or constants raised to $n$.</p>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>Outcome</th><th>Verdict</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>Ratio Test $L < 1$ — absolute series converges</td><td class="verdict-conv">ABSOLUTELY CONVERGENT</td><td>Stop.</td></tr>
+                  <tr><td>Ratio Test $L > 1$</td><td class="verdict-div">DIVERGENT</td><td>Stop.</td></tr>
+                  <tr><td>$L=1$ or $\sum b_n$ diverges (harmonic, $p\leq1$)</td><td class="verdict-inc">inconclusive</td><td>Proceed to Phase 3.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 3 — Zero-Limit Guardrail</div>
+            <p>Evaluate $\lim_{n\to\infty} b_n$.</p>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>Result</th><th>Verdict</th></tr></thead>
+                <tbody>
+                  <tr><td>Limit $\neq 0$</td><td class="verdict-div">DIVERGENT — $n$-th Term Test. Stop.</td></tr>
+                  <tr><td>Limit $= 0$</td><td class="verdict-inc">Proceed to Phase 4.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 4 — Monotonicity Filter</div>
+            <p>Show $b_{n+1} \leq b_n$ for all $n$ beyond some point $K$. Three methods:</p>
+            <ul class="steps-list">
+              <li><span class="step-num">A</span><span class="step-body"><strong>Algebraic:</strong> Constant numerator, growing denominator → trivially decreasing.</span></li>
+              <li><span class="step-num">B</span><span class="step-body"><strong>Ratio Method:</strong> Show $\frac{b_{n+1}}{b_n} \leq 1$.</span></li>
+              <li><span class="step-num">C</span><span class="step-body"><strong>Calculus Method:</strong> Let $f(x)=b_x$. If $f'(x) < 0$ for $x \geq k$, the sequence is decreasing.</span></li>
+            </ul>
+            <p style="margin-top:8px;font-size:0.85rem;color:#666;">If the sequence approaches zero but "wobbles" (non-monotonic): AST is <em>inconclusive</em> — escalate to Dirichlet's Test.</p>
+          </div>
+
+          <div class="sec sec-cond">
+            <div class="sec-label">Phase 5 — Final Classification</div>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>Path Taken</th><th>Classification</th></tr></thead>
+                <tbody>
+                  <tr><td>Phase 2 passed ($\sum b_n$ converges)</td><td class="verdict-conv">ABSOLUTELY CONVERGENT</td></tr>
+                  <tr><td>Phase 2 failed + Phases 3 &amp; 4 passed</td><td class="verdict-cond">CONDITIONALLY CONVERGENT</td></tr>
+                  <tr><td>Phase 3 failed (limit $\neq 0$)</td><td class="verdict-div">DIVERGENT</td></tr>
+                  <tr><td>Phase 4 failed (non-monotonic)</td><td class="verdict-inc">INCONCLUSIVE — use Dirichlet/Abel</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Edge Cases -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">!</div>
+          <div>
+            <div class="sop-card-head-title">Known Edge Cases — Where the AST Breaks</div>
+            <div class="sop-card-head-sub">Know the limits of the protocol</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-warn">
+            <div class="sec-label">Edge Case 1 — The "Wobbly" Shrink</div>
+            <p>Suppose $b_n = 1/n$ for odd $n$ and $b_n = 1/n^2$ for even $n$. The limit is zero, but the sequence jumps between patterns and isn't strictly decreasing every step. Phase 4 is inconclusive. The RASP hits a wall — advanced bounding techniques are needed.</p>
+          </div>
+          <div class="sec sec-warn">
+            <div class="sec-label">Edge Case 2 — The "Imperfect" Alternator ($\sin n$)</div>
+            <p>The series $\sum \sin(n)/n$ oscillates but not predictably — signs may go $+\,+\,-\,+\,-\,-$. The AST requires perfect destructive interference ($+ - + - \ldots$), which $\sin(n)$ does not guarantee. Phase 1 routes you to Phase 2 only; if Phase 2 also fails, you must escalate to <strong>Dirichlet's Test</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="sol-footer">Alternating Series SOP — RASP v2.0<br>Bypass Absolute → Zero Limit → Monotonicity → Classify.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE: DIRECT COMPARISON TEST SOP                                   -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="sol-page" id="page-dct">
+  <header class="site-header" style="position:sticky;top:0;z-index:100;">
+    <button class="back-btn" onclick="go('page-calc2')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span onclick="go('page-calc2')">CALC II</span><span class="sep">/</span>
+      <span class="current">DIRECT COMPARISON</span>
+    </div>
+  </header>
+  <div class="solutions-wrap">
+
+    <div class="sol-header" data-symbol="≤">
+      <div class="mode-badge">CALCULUS II — SERIES CONVERGENCE</div>
+      <h1>Direct Comparison Test — DCT SOP</h1>
+      <p>The analytical equivalent of bounding a suspect variable. Demand strict absolute inequalities. The tool of choice when the series contains bounded functions — sines, cosines, arctangents, logarithms.</p>
+    </div>
+
+    <div class="sol-main">
+
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">Φ</div>
+          <div>
+            <div class="sop-card-head-title">Direct Comparison Test Protocol</div>
+            <div class="sop-card-head-sub">Four phases — from bounding to conclusion</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 1 — Bounding Assessment</div>
+            <p>Identify components that can be strictly bounded by known constants:</p>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>Function</th><th>Bound</th></tr></thead>
+                <tbody>
+                  <tr><td>$\sin(n)$ or $\cos(n)$</td><td>$-1 \leq \sin n \leq 1$; $\;\;0 \leq \sin^2 n \leq 1$</td></tr>
+                  <tr><td>$\arctan(n)$ for $n > 0$</td><td>$0 < \arctan n < \pi/2$</td></tr>
+                  <tr><td>$\ln(n)$ for $n \geq 3$</td><td>$\ln n > 1$; $\;\;\ln n < n$ for all $n \geq 1$</td></tr>
+                  <tr><td>Additive constants in denominator</td><td>Controls whether fraction grows or shrinks when removed</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 2 — Inequality Pivot</div>
+            <p><strong>Goal: Convergence (create a ceiling)</strong> → make $a_n$ larger: $a_n \leq b_n$</p>
+            <ul class="steps-list">
+              <li><span class="step-num">↑</span><span class="step-body">Replace bounded numerator with its <em>maximum</em> value.</span></li>
+              <li><span class="step-num">↑</span><span class="step-body">Remove positive additive terms from denominator (smaller denominator = larger fraction).</span></li>
+            </ul>
+            <p style="margin-top:10px;"><strong>Goal: Divergence (create a floor)</strong> → make $a_n$ smaller: $a_n \geq b_n$</p>
+            <ul class="steps-list">
+              <li><span class="step-num">↓</span><span class="step-body">Replace bounded numerator with its <em>minimum</em> value.</span></li>
+              <li><span class="step-num">↓</span><span class="step-body">Remove subtracted terms from denominator (larger denominator = smaller fraction).</span></li>
+            </ul>
+          </div>
+
+          <div class="sec sec-formula">
+            <div class="sec-label">Phase 3 — Target Evaluation</div>
+            <p>Evaluate the simplified comparison series $b_n$ — usually a $p$-series $\sum 1/n^p$ or geometric series.</p>
+          </div>
+
+          <div class="sec sec-result">
+            <div class="sec-label">Phase 4 — Strict Conclusion</div>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>Logic</th><th>Verdict</th></tr></thead>
+                <tbody>
+                  <tr><td>$a_n \leq b_n$ and $\sum b_n$ converges</td><td class="verdict-conv">CONVERGES</td></tr>
+                  <tr><td>$a_n \geq b_n$ and $\sum b_n$ diverges</td><td class="verdict-div">DIVERGES</td></tr>
+                  <tr><td>$a_n \geq b_n$ and $\sum b_n$ converges</td><td class="verdict-inc">INCONCLUSIVE — tells you nothing</td></tr>
+                  <tr><td>$a_n \leq b_n$ and $\sum b_n$ diverges</td><td class="verdict-inc">INCONCLUSIVE — tells you nothing</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Worked Examples -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">≤</div>
+          <div>
+            <div class="sop-card-head-title">Worked Examples</div>
+            <div class="sop-card-head-sub">Five canonical DCT problems</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">1</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty} \frac{1}{n^2+5}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Pivot</div><p>Removing $+5$ shrinks the denominator, making the fraction larger: $\;\frac{1}{n^2+5} < \frac{1}{n^2}$</p></div>
+              <div class="sec sec-formula"><div class="sec-label">Target</div><p>$b_n = 1/n^2$ — convergent $p$-series ($p=2>1$).</p></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">Smaller than a convergent series → <strong>CONVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">2</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\frac{\sin^2(n)}{n^3}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Pivot</div><p>$\sin^2(n) \leq 1$ always, so: $\;\frac{\sin^2(n)}{n^3} \leq \frac{1}{n^3}$</p></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$b_n = 1/n^3$ converges ($p=3$) → <strong>CONVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">3</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\frac{2+\cos(n)}{n}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Pivot</div><p>$\cos(n) \geq -1$ always, so $2+\cos(n) \geq 1$, giving: $\;\frac{2+\cos(n)}{n} \geq \frac{1}{n}$</p></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$b_n = 1/n$ is the harmonic series (diverges) → <strong>DIVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">4</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\frac{\ln(n)}{n}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Pivot</div><p>For $n \geq 3$: $\ln(n) > 1$, so $\;\frac{\ln(n)}{n} > \frac{1}{n}$</p></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">Larger than the divergent harmonic series → <strong>DIVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">5</div><div class="prob-card-title">$\displaystyle\sum_{n=2}^{\infty}\frac{\arctan(n)}{n-1}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Double Pivot</div><p>For $n\geq2$: $\arctan(n) > \arctan(1) = \pi/4$, and $n-1 < n$, so:</p>
+              <div class="math-display">$$\frac{\arctan(n)}{n-1} > \frac{\pi/4}{n}$$</div></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$(\pi/4)\cdot(1/n)$ is a constant multiple of the harmonic series → <strong>DIVERGES</strong></p></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <div class="sol-footer">Direct Comparison Test SOP — Bound → Pivot → Target → Conclude.<br>DCT shines when bounded functions (trig, log, arctan) make limits impossible to compute.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE: LIMIT COMPARISON TEST SOP                                    -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="sol-page" id="page-lct">
+  <header class="site-header" style="position:sticky;top:0;z-index:100;">
+    <button class="back-btn" onclick="go('page-calc2')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span onclick="go('page-calc2')">CALC II</span><span class="sep">/</span>
+      <span class="current">LIMIT COMPARISON</span>
+    </div>
+  </header>
+  <div class="solutions-wrap">
+
+    <div class="sol-header" data-symbol="L">
+      <div class="mode-badge">CALCULUS II — SERIES CONVERGENCE</div>
+      <h1>Limit Comparison Test — LCT SOP</h1>
+      <p>Identify a "prototype" series that mirrors $a_n$ as $n\to\infty$. If their growth rates are proportional, their convergence behaviors are identical.</p>
+    </div>
+
+    <div class="sol-main">
+
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">Φ</div>
+          <div>
+            <div class="sop-card-head-title">Limit Comparison Test Protocol</div>
+            <div class="sop-card-head-sub">Four phases — dominant terms to conclusion</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 1 — Dominant Term Inspection</div>
+            <p>Use LCT when the summand is a rational function (polynomial/polynomial) or involves radicals ($\sqrt{n}$). At infinity, lower-order terms vanish — the series "acts like" its leading terms. Identify the highest power of $n$ in the numerator and denominator.</p>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 2 — Construction of Comparison Series ($b_n$)</div>
+            <div class="math-display">$$b_n = \frac{n^{\text{top power}}}{n^{\text{bottom power}}} = \frac{1}{n^p}$$</div>
+            <p>Simplify $b_n$ into $p$-series form $1/n^p$ to enable easy evaluation.</p>
+          </div>
+
+          <div class="sec sec-formula">
+            <div class="sec-label">Phase 3 — Limit Evaluation (The Footwork)</div>
+            <div class="math-display">$$L = \lim_{n\to\infty} \frac{a_n}{b_n}$$</div>
+            <p>If $0 < L < \infty$ (finite and positive): both series behave identically — they share the same fate.</p>
+          </div>
+
+          <div class="sec sec-result">
+            <div class="sec-label">Phase 4 — Conclusion by $p$-series</div>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>$p$ value</th><th>$b_n$ verdict</th><th>$a_n$ verdict</th></tr></thead>
+                <tbody>
+                  <tr><td>$p > 1$</td><td class="verdict-conv">Converges</td><td class="verdict-conv">CONVERGES</td></tr>
+                  <tr><td>$p \leq 1$</td><td class="verdict-div">Diverges</td><td class="verdict-div">DIVERGES</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- LCT vs DCT Guide -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">?</div>
+          <div>
+            <div class="sop-card-head-title">LCT vs. DCT — The Decision Pipeline</div>
+            <div class="sop-card-head-sub">Run this logic gate before picking your test</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-warn">
+            <div class="sec-label">Triggers for LCT</div>
+            <ul class="steps-list">
+              <li><span class="step-num">→</span><span class="step-body"><strong>Messy Polynomials:</strong> Fractions with multiple powers of $n$, like $\sum \frac{3n^2-5n+2}{7n^5+n}$.</span></li>
+              <li><span class="step-num">→</span><span class="step-body"><strong>Radicals with Polynomials:</strong> Square roots mixed with powers, like $\sum \frac{1}{\sqrt{n^3-2}}$.</span></li>
+              <li><span class="step-num">→</span><span class="step-body"><strong>DCT Inequality Fails:</strong> Example — to prove $\sum\frac{1}{n^2-1}$ converges, you'd compare to $1/n^2$, but $\frac{1}{n^2-1} > \frac{1}{n^2}$, ruining the ceiling. DCT is dead here. LCT handles it since it only needs the limit of the ratio.</span></li>
+            </ul>
+          </div>
+          <div class="sec sec-step">
+            <div class="sec-label">Triggers for DCT</div>
+            <ul class="steps-list">
+              <li><span class="step-num">→</span><span class="step-body"><strong>Trigonometry:</strong> $\sin n$, $\cos n$, $\arctan n$. LCT fails because $\lim \sin n$ doesn't exist. DCT immediately replaces $\sin^2 n$ with $1$.</span></li>
+              <li><span class="step-num">→</span><span class="step-body"><strong>Logarithms:</strong> $\ln n$ lacks a clean polynomial equivalent. DCT bounds it: $\ln n < n$ or $\ln n > 1$.</span></li>
+              <li><span class="step-num">→</span><span class="step-body"><strong>Clean Additive Constants:</strong> $\frac{1}{n^3+5}$ — just drop $+5$ to get the ceiling. DCT is faster than the LCT limit here.</span></li>
+            </ul>
+          </div>
+          <div class="sec sec-neutral">
+            <div class="sec-label">Quick Decision Logic</div>
+            <ul class="steps-list">
+              <li><span class="step-num">1</span><span class="step-body">Does it have $\sin$, $\cos$, $\arctan$, or $\ln$? → <strong>Use DCT.</strong></span></li>
+              <li><span class="step-num">2</span><span class="step-body">Is it a fraction of polynomials or roots? → <strong>Use LCT.</strong></span></li>
+              <li><span class="step-num">3</span><span class="step-body">Denominator has a minus sign (like $n^3-4$) making DCT ceiling wrong? → <strong>Use LCT.</strong></span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Worked Examples -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">L</div>
+          <div>
+            <div class="sop-card-head-title">Worked Examples</div>
+            <div class="sop-card-head-sub">LCT applied to three canonical forms</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">1</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty} \frac{n+1}{n^2+n+1}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Dominant Terms</div><p>Top: $n^1$. Bottom: $n^2$. So $b_n = 1/n$ — divergent harmonic series.</p></div>
+              <div class="sec sec-formula"><div class="sec-label">Limit</div><div class="math-display">$$L = \lim_{n\to\infty}\frac{n+1}{n^2+n+1}\cdot n = \lim_{n\to\infty}\frac{n^2+n}{n^2+n+1} = 1$$</div></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$L=1$, $b_n$ diverges → <strong>DIVERGES</strong></p></div>
+            </div>
+          </div>
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">2</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty} \frac{1}{\sqrt{n^2+1}}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Dominant Terms</div><p>$\sqrt{n^2} = n$, so $b_n = 1/n$ — divergent.</p></div>
+              <div class="sec sec-formula"><div class="sec-label">Limit</div><div class="math-display">$$L = \lim_{n\to\infty}\frac{n}{\sqrt{n^2+1}} = \sqrt{\lim\frac{n^2}{n^2+1}} = 1$$</div></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;"><strong>DIVERGES</strong></p></div>
+            </div>
+          </div>
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">3</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty} \frac{5n^2+1}{2n^4+3n}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Dominant Terms</div><p>$5n^2$ and $2n^4$, so $b_n = n^2/n^4 = 1/n^2$ — convergent ($p=2$).</p></div>
+              <div class="sec sec-formula"><div class="sec-label">Limit</div><div class="math-display">$$L = \lim_{n\to\infty}\frac{5n^2+1}{2n^4+3n}\cdot n^2 = \lim_{n\to\infty}\frac{5n^4+n^2}{2n^4+3n} = \frac{5}{2}$$</div></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$L=5/2$, $b_n$ converges → <strong>CONVERGES</strong></p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="sol-footer">Limit Comparison Test SOP — Dominant Terms → Prototype Series → Limit Ratio → $p$-series Verdict.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE: ROOT TEST SOP                                                -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="sol-page" id="page-root">
+  <header class="site-header" style="position:sticky;top:0;z-index:100;">
+    <button class="back-btn" onclick="go('page-calc2')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span onclick="go('page-calc2')">CALC II</span><span class="sep">/</span>
+      <span class="current">ROOT TEST</span>
+    </div>
+  </header>
+  <div class="solutions-wrap">
+
+    <div class="sol-header" data-symbol="ⁿ√">
+      <div class="mode-badge">CALCULUS II — SERIES CONVERGENCE</div>
+      <h1>Root Test — SOPRT</h1>
+      <p>The optimal tool when the entire expression is raised to the $n$-th power. The $n$-th root strips the exponent and exposes the base — then the limit tells all.</p>
+    </div>
+
+    <div class="sol-main">
+
+      <!-- Formal Criteria -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">I.</div>
+          <div>
+            <div class="sop-card-head-title">Formal Root Test Criteria</div>
+            <div class="sop-card-head-sub">When to use it and what $L$ means</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-overview">
+            <div class="sec-label">The Test</div>
+            <p>Given $\sum a_n$, compute:</p>
+            <div class="math-display">$$L = \lim_{n\to\infty}\sqrt[n]{|a_n|} = \lim_{n\to\infty}|a_n|^{1/n}$$</div>
+            <div class="dec-table-wrap">
+              <table class="dec-table">
+                <thead><tr><th>$L$ value</th><th>Verdict</th></tr></thead>
+                <tbody>
+                  <tr><td>$L < 1$</td><td class="verdict-conv">ABSOLUTELY CONVERGENT</td></tr>
+                  <tr><td>$L > 1$ or $L = \infty$</td><td class="verdict-div">DIVERGENT</td></tr>
+                  <tr><td>$L = 1$</td><td class="verdict-inc">INCONCLUSIVE — use another test</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="sec sec-warn">
+            <div class="sec-label">When to Choose the Root Test</div>
+            <p>Use the Root Test when the general term is <em>power-dominant</em>:</p>
+            <div class="math-display">$$a_n = [f(n)]^n \qquad a_n = [f(n)]^{n^2} \qquad a_n = \frac{c^n}{g(n)^n}$$</div>
+            <p>If the term contains factorials ($n!$), the <strong>Ratio Test</strong> is usually more efficient — the Root Test struggles with factorials.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Protocol -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">Φ</div>
+          <div>
+            <div class="sop-card-head-title">Root Test Protocol (SOPRT)</div>
+            <div class="sop-card-head-sub">Five phases — identification to characterization</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-step"><div class="sec-label">Phase 1 — Identification</div><p>Verify the general term $a_n$ has a functional base raised to a power involving $n$. Confirm the Root Test applies.</p></div>
+          <div class="sec sec-step"><div class="sec-label">Phase 2 — Radical Transformation</div><div class="math-display">$$\sqrt[n]{|a_n|} = (|a_n|)^{1/n}$$</div></div>
+          <div class="sec sec-formula">
+            <div class="sec-label">Phase 3 — Algebraic Simplification</div>
+            <p>Apply $(x^a)^b = x^{ab}$ to eliminate the outer power:</p>
+            <div class="math-display">$$\text{If } a_n = [f(n)]^n:\quad ([f(n)]^n)^{1/n} = |f(n)|$$</div>
+            <div class="math-display">$$\text{If } a_n = [f(n)]^{n^2}:\quad ([f(n)]^{n^2})^{1/n} = |f(n)|^n$$</div>
+          </div>
+          <div class="sec sec-step"><div class="sec-label">Phase 4 — Limit Evaluation</div><p>Evaluate $L = \lim_{n\to\infty}|a_n|^{1/n}$. Use L'Hôpital's Rule if an indeterminate form arises.</p></div>
+          <div class="sec sec-result"><div class="sec-label">Phase 5 — Final Characterization</div><p>Compare $L$ to the unit threshold and state the verdict.</p></div>
+        </div>
+      </div>
+
+      <!-- Examples -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">ⁿ√</div>
+          <div>
+            <div class="sop-card-head-title">Worked Examples</div>
+            <div class="sop-card-head-sub">Three power-dominant series</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">1</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\left(\frac{2n}{3n+1}\right)^n$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-formula"><div class="sec-label">Transform &amp; Simplify</div><div class="math-display">$$L = \lim_{n\to\infty}\left[\left(\frac{2n}{3n+1}\right)^n\right]^{1/n} = \lim_{n\to\infty}\frac{2n}{3n+1} = \frac{2}{3}$$</div></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$L = 2/3 < 1$ → <strong>CONVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">2</div><div class="prob-card-title">$\displaystyle\sum_{n=2}^{\infty} \frac{1}{(\ln n)^n}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-formula"><div class="sec-label">Transform &amp; Simplify</div><div class="math-display">$$a_n = \left(\frac{1}{\ln n}\right)^n \implies L = \lim_{n\to\infty}\frac{1}{\ln n} = 0$$</div></div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$L = 0 < 1$ → <strong>CONVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">3</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\left(\frac{7}{2^n}+\frac{3}{5}\right)^{n^2}$ — Higher Power</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-formula">
+                <div class="sec-label">Transform &amp; Simplify</div>
+                <div class="math-display">$$L = \lim_{n\to\infty}\left[\left(\frac{7}{2^n}+\frac{3}{5}\right)^{n^2}\right]^{1/n} = \lim_{n\to\infty}\left(\frac{7}{2^n}+\frac{3}{5}\right)^n$$</div>
+                <p>As $n\to\infty$: $\frac{7}{2^n}\to 0$, so the limit becomes $\lim_{n\to\infty}\left(\frac{3}{5}\right)^n = 0$.</p>
+              </div>
+              <div class="conv-box"><div class="conv-box-label">Conclusion</div><p style="font-size:0.9rem;margin-top:4px;">$L = 0 < 1$ → <strong>CONVERGES</strong></p></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <div class="sol-footer">Root Test SOP — Identify → Transform → Simplify → Evaluate $L$ → Characterize.<br>Use when the entire expression is raised to the $n$-th power. Avoid for factorials.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE: TELESCOPING SERIES SOP                                       -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="sol-page" id="page-telescoping">
+  <header class="site-header" style="position:sticky;top:0;z-index:100;">
+    <button class="back-btn" onclick="go('page-calc2')">← BACK</button>
+    <div class="breadcrumb">
+      <span onclick="go('page-home')">HOME</span><span class="sep">/</span>
+      <span onclick="go('page-calc')">CALCULUS</span><span class="sep">/</span>
+      <span onclick="go('page-calc2')">CALC II</span><span class="sep">/</span>
+      <span class="current">TELESCOPING SERIES</span>
+    </div>
+  </header>
+  <div class="solutions-wrap">
+
+    <div class="sol-header" data-symbol="↔">
+      <div class="mode-badge">CALCULUS II — SERIES CONVERGENCE</div>
+      <h1>Telescoping Series — Convergence SOP</h1>
+      <p>Internal terms cancel — like a collapsing telescope. These are rare series where the exact value of the sum can be computed with precision, not just classified.</p>
+    </div>
+
+    <div class="sol-main">
+
+      <!-- The Idea -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">I.</div>
+          <div>
+            <div class="sop-card-head-title">The Telescoping Structure</div>
+            <div class="sop-card-head-sub">Why almost everything cancels</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+          <div class="sec sec-overview">
+            <div class="sec-label">Core Mechanism</div>
+            <p>If $a_n = b_n - b_{n+1}$, the partial sum $S_k$ expands into a chain where everything in the middle cancels:</p>
+            <div class="math-display">$$S_k = (b_1 - b_2) + (b_2 - b_3) + (b_3 - b_4) + \cdots + (b_k - b_{k+1}) = b_1 - b_{k+1}$$</div>
+            <p>Convergence then hinges entirely on the "tail" $b_{k+1}$: if $\lim_{k\to\infty} b_{k+1}$ is finite, the series converges to $b_1 - \lim b_{k+1}$.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Protocol -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">Φ</div>
+          <div>
+            <div class="sop-card-head-title">Telescoping Series Protocol</div>
+            <div class="sop-card-head-sub">Five phases — identify to exact value</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 1 — Identification &amp; Inspection</div>
+            <p>Determine if the series can be written in the form $(b_n - b_{n+k})$. Look for:</p>
+            <ul class="steps-list">
+              <li><span class="step-num">→</span><span class="step-body">Subtraction between similar functional forms</span></li>
+              <li><span class="step-num">→</span><span class="step-body">Rational functions with factorable quadratic denominators → Partial Fraction Decomposition</span></li>
+              <li><span class="step-num">→</span><span class="step-body">Logarithmic form: $\ln(n+1) - \ln(n)$ via $\ln(A/B) = \ln A - \ln B$</span></li>
+            </ul>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 2 — Partial Fraction Decomposition (if needed)</div>
+            <p>If $a_n$ is rational, decompose into $\frac{A}{f(n)} - \frac{B}{g(n)}$. Solve for $A$ and $B$ by setting up the covering equation and evaluating at strategic values of $n$.</p>
+          </div>
+
+          <div class="sec sec-step">
+            <div class="sec-label">Phase 3 — Partial Sum Expansion ($S_k$)</div>
+            <p>Write out the first 3–4 terms and the last 2 terms of $S_k$ explicitly. This makes the cancellation pattern visible.</p>
+          </div>
+
+          <div class="sec sec-formula">
+            <div class="sec-label">Phase 4 — Cancellation &amp; Reduction</div>
+            <p>Strike through the cancelling terms. If the "gap" between terms is $>1$ (e.g., $b_n - b_{n+2}$), more than one term will survive at each end.</p>
+          </div>
+
+          <div class="sec sec-result">
+            <div class="sec-label">Phase 5 — Limit Evaluation</div>
+            <div class="math-display">$$S = \lim_{k\to\infty} S_k$$</div>
+            <p>If the limit is finite → converges to that value. If the limit is $\pm\infty$ → diverges.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Worked Examples -->
+      <div class="sop-card">
+        <div class="sop-card-head">
+          <div class="sop-card-head-icon">↔</div>
+          <div>
+            <div class="sop-card-head-title">Worked Examples</div>
+            <div class="sop-card-head-sub">Six canonical telescoping problems</div>
+          </div>
+        </div>
+        <div class="sop-card-body">
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">1</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\!\left(\frac{1}{n} - \frac{1}{n+1}\right)$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Already telescoping</div><p>$S_k = (1-\tfrac{1}{2})+(\tfrac{1}{2}-\tfrac{1}{3})+\cdots+(\tfrac{1}{k}-\tfrac{1}{k+1}) = 1 - \tfrac{1}{k+1}$</p></div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><p style="font-size:0.9rem;margin-top:4px;">$S = \lim_{k\to\infty}(1 - \tfrac{1}{k+1}) = \mathbf{1}$</p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">2</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^2+n}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Partial Fractions</div><p>$\frac{1}{n(n+1)} = \frac{1}{n} - \frac{1}{n+1}$. Identical to Example 1.</p></div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><p style="font-size:0.9rem;margin-top:4px;">$S = \mathbf{1}$</p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">3</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\ln\!\left(\frac{n+1}{n}\right)$ — Divergent</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Log Rule</div><p>$\ln\tfrac{n+1}{n} = \ln(n+1) - \ln n$. Expansion: $S_k = \ln(k+1) - \ln 1 = \ln(k+1)$.</p></div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><p style="font-size:0.9rem;margin-top:4px;">$S = \lim \ln(k+1) = \infty$ → <strong>DIVERGES</strong></p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">4</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\!\left(\cos\tfrac{1}{n} - \cos\tfrac{1}{n+1}\right)$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Reduction</div><p>$S_k = \cos 1 - \cos\tfrac{1}{k+1}$</p></div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><p style="font-size:0.9rem;margin-top:4px;">$S = \cos 1 - \cos 0 = \cos(1) - 1$</p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">5</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\!\left(\frac{1}{e^n} - \frac{1}{e^{n+1}}\right)$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Reduction</div><p>$S_k = \tfrac{1}{e} - \tfrac{1}{e^{k+1}}$</p></div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><p style="font-size:0.9rem;margin-top:4px;">$S = \dfrac{1}{e}$</p></div>
+            </div>
+          </div>
+
+          <div class="prob-card">
+            <div class="prob-card-head"><div class="prob-card-num">6</div><div class="prob-card-title">$\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^2+3n+2}$</div></div>
+            <div class="prob-card-body">
+              <div class="sec sec-step"><div class="sec-label">Partial Fractions</div><p>$(n+1)(n+2)$ → $\frac{1}{n+1}-\frac{1}{n+2}$. $S_k = \tfrac{1}{2} - \tfrac{1}{k+2}$.</p></div>
+              <div class="conv-box"><div class="conv-box-label">Result</div><p style="font-size:0.9rem;margin-top:4px;">$S = \dfrac{1}{2}$</p></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <div class="sol-footer">Telescoping Series SOP — Identify → Decompose → Expand $S_k$ → Cancel → Evaluate limit.<br>These are the only series where the exact sum, not just convergence, can be found directly.</div>
+  </div>
+</div>
+
+
+<script>
+function go(pageId) {
+  document.querySelectorAll('.page, .sol-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  // Scroll to top on sol-pages
+  const el = document.getElementById(pageId);
+  const wrap = el.querySelector('.solutions-wrap');
+  if (wrap) wrap.scrollTop = 0;
+}
+</script>
+</body>
+</html>
